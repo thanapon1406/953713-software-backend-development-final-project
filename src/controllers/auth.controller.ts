@@ -1,8 +1,10 @@
 // src/controllers/auth.controller.ts
 import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
+import { AuthService } from "../services/auth.service";
 
 export class AuthController {
-  constructor() {}
+  constructor(private authService: AuthService = new AuthService()) { }
 
   public getProfile = async (req: Request, res: Response) => {
     try {
@@ -17,6 +19,78 @@ export class AuthController {
       }
       res.status(200).json({
         success: true,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  public register = async (req: Request, res: Response) => {
+    try {
+      // รับค่าจาก Body
+      const {
+        nationalId,
+        firstName,
+        lastName,
+        address,
+        province,
+        districtNumber,
+      } = req.body;
+
+      // Validate required fields
+      if (
+        !nationalId ||
+        !firstName ||
+        !lastName ||
+        !province ||
+        !districtNumber
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "กรุณาระบุข้อมูลให้ครบถ้วน (nationalId, firstName, lastName, province, districtNumber)",
+        });
+      }
+
+      // เรียก Service เพื่อทำงาน
+      const newUser = await this.authService.registerUser(
+        nationalId,
+        firstName,
+        lastName,
+        address,
+        province,
+        parseInt(districtNumber),
+      );
+
+      // สร้าง JWT Token
+      const token = jwt.sign(
+        {
+          id: newUser.id,
+          nationalId: newUser.nationalId,
+          role: newUser.role,
+        },
+        process.env.JWT_SECRET!,
+        { expiresIn: "7d" }, // Token มีอายุ 7 วัน
+      );
+
+      // ส่งผลลัพธ์กลับพร้อม Token
+      res.status(201).json({
+        success: true,
+        message: "ลงทะเบียนสำเร็จ",
+        data: {
+          user: {
+            id: newUser.id,
+            nationalId: newUser.nationalId,
+            firstName: newUser.firstName,
+            lastName: newUser.lastName,
+            role: newUser.role,
+            constituency: newUser.constituency,
+          },
+          token,
+        },
       });
     } catch (error: any) {
       res.status(400).json({
