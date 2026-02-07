@@ -99,4 +99,52 @@ export class AuthController {
       });
     }
   };
+
+  public login = async (req: Request, res: Response) => {
+    try {
+      const { nationalId } = req.body;
+
+      if (!nationalId) {
+        return res.status(400).json({
+          success: false,
+          message: "กรุณาระบุเลขบัตรประชาชน",
+        });
+      }
+
+      // เรียก Service เพื่อหาผู้ใช้
+      const user = await this.authService.loginUser(nationalId);
+
+      // สร้าง JWT Token
+      const token = jwt.sign(
+        {
+          id: user.id,
+          nationalId: user.nationalId,
+          role: user.role,
+        },
+        process.env.JWT_SECRET!,
+        { expiresIn: "7d" },
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "เข้าสู่ระบบสำเร็จ",
+        data: {
+          user: {
+            id: user.id,
+            nationalId: user.nationalId,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            constituency: user.constituency,
+          },
+          token,
+        },
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
 }
