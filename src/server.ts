@@ -3,6 +3,7 @@ import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth.routes";
+import morgan from "morgan";
 
 // Import Routes
 
@@ -15,6 +16,7 @@ const PORT = process.env.PORT || 3000;
 // 2. Middleware Setup
 app.use(cors()); // Allow Cross-Origin requests
 app.use(express.json()); // Parse JSON bodies
+app.use(morgan('dev')); // HTTP request logger
 
 // 3. Health Check Route
 app.get("/", (req: Request, res: Response) => {
