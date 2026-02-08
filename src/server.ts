@@ -4,6 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth.routes";
 import morgan from "morgan";
+import adminRoutes from "./routes/admin.routes";
 
 // Import Routes
 
@@ -28,6 +29,7 @@ app.get("/", (req: Request, res: Response) => {
 
 // 4. API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 
 // 5. Global Error Handling Middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
