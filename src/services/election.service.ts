@@ -62,19 +62,18 @@ export class ElectionService {
   };
 
 
-//   public closePoll = async (constituencyId: number) => {
-//     const constituency = await constituencyRepo.findById(constituencyId);
+  public closePoll = async (constituencyId: number) => {
+    const constituency = await constituencyRepo.findById(constituencyId);
 
-//     if (!constituency) {
-//       throw new Error(`ไม่พบเขตเลือกตั้ง ID: ${constituencyId}`);
-//     }
+    if (!constituency) {
+      throw new Error(`ไม่พบเขตเลือกตั้ง ID: ${constituencyId}`);
+    }
 
-//     if (constituency.isClosed) {
-//       throw new Error(`เขตเลือกตั้งนี้ปิดการลงคะแนนไปแล้ว`);
-//     }
+    if (constituency.isClosed) {
+      throw new Error(`เขตเลือกตั้งนี้ปิดการลงคะแนนไปแล้ว`);
+    }
 
-//     return await constituencyRepo.close(constituencyId);
-//   };
+    return await constituencyRepo.close(constituencyId);
+  };
 
-  
 }

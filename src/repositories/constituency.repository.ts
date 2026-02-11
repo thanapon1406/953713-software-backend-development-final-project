@@ -26,3 +26,17 @@ export const findById = async (id: number) => {
   });
 };
 
+
+
+
+
+
+
+
+
+export const close = async (id: number) => {
+  return await prisma.constituency.update({
+    where: { id },
+    data: { isClosed: true },
+  });
+};

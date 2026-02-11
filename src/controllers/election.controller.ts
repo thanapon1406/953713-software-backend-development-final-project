@@ -90,6 +90,32 @@ export class ElectionController {
     }
   };
 
+  closePoll = async (req: Request, res: Response) => {
+    try {
+      const constituencyId = parseInt(req.params.id as string);
+
+      if (isNaN(constituencyId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Constituency ID ไม่ถูกต้อง",
+        });
+      }
+
+      const constituency = await this.electionService.closePoll(constituencyId);
+
+      res.status(200).json({
+        success: true,
+        message: "ปิดการลงคะแนนสำเร็จ",
+        data: constituency,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
   
 
 }
