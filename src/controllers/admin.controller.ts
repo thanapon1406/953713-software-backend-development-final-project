@@ -53,4 +53,33 @@ export class AdminController {
       });
     }
   };
+
+promoteUserToEC = async (req: Request, res: Response) => {
+    try {
+      const userIdParam = req.params.userId;
+      const userId = parseInt(
+        Array.isArray(userIdParam) ? userIdParam[0] : userIdParam,
+      );
+
+      if (isNaN(userId)) {
+        return res.status(400).json({
+          success: false,
+          message: "User ID ไม่ถูกต้อง",
+        });
+      }
+
+      const user = await this.adminService.promoteUserToEC(userId);
+
+      res.status(200).json({
+        success: true,
+        message: "เปลี่ยน Role เป็น EC สำเร็จ",
+        data: user,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
 }
