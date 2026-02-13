@@ -1,6 +1,5 @@
 // src/repositories/constituency.repository.ts
 import { Prisma } from "../generated/prisma";
-import { Prisma } from "../generated/prisma";
 import { prisma } from "../lib/prisma";
 
 
