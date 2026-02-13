@@ -34,4 +34,25 @@ export class AdminService {
     });
 
     return constituency;
-  };}
+  };
+
+   public promoteUserToEC = async (userId: number) => {
+    const user = await userRepo.findById(userId);
+
+    if (!user) {
+      throw new Error(`ไม่พบผู้ใช้ ID: ${userId}`);
+    }
+
+    if (user.role === $Enums.Role.EC) {
+      throw new Error(`ผู้ใช้นี้เป็น EC อยู่แล้ว`);
+    }
+
+    if (user.role === $Enums.Role.ADMIN) {
+      throw new Error(`ไม่สามารถเปลี่ยน Admin เป็น EC ได้`);
+    }
+
+    const updatedUser = await userRepo.updateRole(userId, $Enums.Role.EC);
+
+    return updatedUser;
+  };
+}
