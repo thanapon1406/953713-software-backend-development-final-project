@@ -1,11 +1,13 @@
 // src/services/election.service.ts
-import * as userRepo from "../repositories/user.repository";
-import * as constituencyRepo from "../repositories/constituency.repository";
-import * as partyRepo from "../repositories/party.repository";
-import * as candidateRepo from "../repositories/candidate.repository";
+import * as userRepo from '../repositories/user.repository';
+import * as constituencyRepo from '../repositories/constituency.repository';
+import * as partyRepo from '../repositories/party.repository';
+import * as candidateRepo from '../repositories/candidate.repository';
 
 export class ElectionService {
-
+  /**
+   * สร้างพรรคการเมืองใหม่ (EC only)
+   */
 
   public createParty = async (
     name: string,
@@ -15,7 +17,9 @@ export class ElectionService {
     return await partyRepo.create({ name, logoUrl, policy });
   };
 
- 
+  /**
+   * เพิ่มผู้สมัคร (EC only)
+   */
   public addCandidate = async (
     candidateNumber: number,
     title: string | null,
@@ -61,7 +65,9 @@ export class ElectionService {
     });
   };
 
-
+  /**
+   * ปิดการลงคะแนนในเขต (EC only)
+   */
   public closePoll = async (constituencyId: number) => {
     const constituency = await constituencyRepo.findById(constituencyId);
 
@@ -76,4 +82,57 @@ export class ElectionService {
     return await constituencyRepo.close(constituencyId);
   };
 
+  /**
+   * ดึงรายการเขตเลือกตั้งทั้งหมด
+   */
+  public getAllConstituencies = async () => {
+    return await constituencyRepo.findAll();
+  };
+
+  /**
+   * ดึงรายการเขตเลือกตั้งตามจังหวัด
+   */
+  public getConstituenciesByProvince = async (province: string) => {
+    if (!province) {
+      throw new Error('กรุณาระบุชื่อจังหวัด');
+    }
+    return await constituencyRepo.findByProvince(province);
+  };
+
+  /**
+   * ดูผลการเลือกตั้งในเขต
+   */
+  public getConstituencyResults = async (constituencyId: number) => {
+    const data = await constituencyRepo.findWithResults(constituencyId);
+
+    if (!data) {
+      throw new Error(`ไม่พบเขตเลือกตั้ง ID: ${constituencyId}`);
+    }
+
+    const candidatesWithVotes = data.candidates.map((candidate) => ({
+      id: candidate.id,
+      candidateNumber: candidate.candidateNumber,
+      title: candidate.title,
+      firstName: candidate.firstName,
+      lastName: candidate.lastName,
+      imageUrl: candidate.imageUrl,
+      policy: candidate.policy,
+      party: {
+        id: candidate.party.id,
+        name: candidate.party.name,
+        logoUrl: candidate.party.logoUrl,
+      },
+      voteCount: data.isClosed ? candidate.votes.length : null,
+    }));
+
+    return {
+      constituency: {
+        id: data.id,
+        province: data.province,
+        districtNumber: data.districtNumber,
+        isClosed: data.isClosed,
+      },
+      candidates: candidatesWithVotes,
+    };
+  };
 }
