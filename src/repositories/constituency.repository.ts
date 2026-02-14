@@ -2,6 +2,7 @@
 import { Prisma } from "../generated/prisma";
 import { prisma } from "../lib/prisma";
 
+
 export const findByLocation = async (
   province: string,
   districtNumber: number,

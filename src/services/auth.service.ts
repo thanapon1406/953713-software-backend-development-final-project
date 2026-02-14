@@ -6,6 +6,7 @@ import * as constituencyRepo from "../repositories/constituency.repository";
 export class AuthService {
   public registerUser = async (
     nationalId: string,
+    laserCode: string,
     firstName: string,
     lastName: string,
     address: string,
@@ -32,6 +33,7 @@ export class AuthService {
     // 3. สร้าง User โดยผูกกับ constituency.id ที่หาได้
     const user = await userRepo.create({
       nationalId,
+      laserCode,
       firstName,
       lastName,
       address,
@@ -44,11 +46,16 @@ export class AuthService {
     return user;
   };
 
-  public loginUser = async (nationalId: string) => {
+  public loginUser = async (nationalId: string, laserCode: string) => {
     const user = await userRepo.findByNationalId(nationalId);
 
     if (!user) {
       throw new Error(`ไม่พบผู้ใช้งานที่มีเลขบัตรประชาชน ${nationalId}`);
+    }
+
+    // Verify laser code
+    if (user.laserCode !== laserCode) {
+      throw new Error(`Laser Code ไม่ถูกต้อง`);
     }
 
     return user;
