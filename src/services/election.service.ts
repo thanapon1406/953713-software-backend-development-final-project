@@ -135,4 +135,51 @@ export class ElectionService {
       candidates: candidatesWithVotes,
     };
   };
+
+  /**
+   * ดูภาพรวมพรรคทั้งหมด พร้อมจำนวน MPs
+   */
+  public getPartyOverview = async () => {
+    const parties = await partyRepo.findAllWithCandidates();
+    const allConstituencies = await constituencyRepo.findAll();
+    const closedConstituencyIds = allConstituencies
+      .filter((c) => c.isClosed)
+      .map((c) => c.id);
+
+    // Get closed constituencies with full data
+    const closedConstituenciesData = await Promise.all(
+      closedConstituencyIds.map((id) => constituencyRepo.findWithResults(id)),
+    );
+
+    return parties.map((party) => {
+      let totalElectedMPs = 0;
+
+      for (const constituency of closedConstituenciesData) {
+        if (!constituency) continue;
+
+        let maxVotes = -1;
+        let winnerPartyId: number | null = null;
+
+        for (const candidate of constituency.candidates) {
+          const voteCount = candidate.votes.length;
+          if (voteCount > maxVotes) {
+            maxVotes = voteCount;
+            winnerPartyId = candidate.partyId;
+          }
+        }
+
+        if (winnerPartyId === party.id) {
+          totalElectedMPs++;
+        }
+      }
+
+      return {
+        id: party.id,
+        name: party.name,
+        logoUrl: party.logoUrl,
+        policy: party.policy,
+        totalElectedMPs,
+      };
+    });
+  };
 }

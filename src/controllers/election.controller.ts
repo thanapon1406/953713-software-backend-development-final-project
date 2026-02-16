@@ -117,7 +117,85 @@ export class ElectionController {
   };
 
   
+  /**
+   * GET /api/election/constituency/:id
+   * ดูผลการเลือกตั้งในเขต
+   */
+  getConstituencyData = async (req: Request, res: Response) => {
+    try {
+      const constituencyId = parseInt(req.params.id as string);
 
+      if (isNaN(constituencyId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Constituency ID ไม่ถูกต้อง",
+        });
+      }
+
+      const data =
+        await this.electionService.getConstituencyResults(constituencyId);
+
+      res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  /**
+   * GET /api/election/party-overview
+   * ดูภาพรวมพรรคทั้งหมดพร้อมจำนวน MPs
+   */
+  getPartyOverview = async (req: Request, res: Response) => {
+    try {
+      const parties = await this.electionService.getPartyOverview();
+
+      res.status(200).json({
+        success: true,
+        data: parties,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  /**
+   * GET /api/election/constituencies
+   * ดูรายการเขตเลือกตั้งทั้งหมด (Public)
+   */
+  getAllConstituencies = async (req: Request, res: Response) => {
+    try {
+      const { province } = req.query;
+
+      let constituencies;
+      if (province && typeof province === "string") {
+        // ถ้ามีระบุจังหวัด ให้กรองตามจังหวัด
+        constituencies =
+          await this.electionService.getConstituenciesByProvince(province);
+      } else {
+        // ถ้าไม่มี ให้แสดงทั้งหมด
+        constituencies = await this.electionService.getAllConstituencies();
+      }
+
+      res.status(200).json({
+        success: true,
+        data: constituencies,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
   
 
 }
