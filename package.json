@@ -22,6 +22,7 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.1",
+    "rm": "^0.1.8",
     "tsx": "^4.21.0"
   },
   "devDependencies": {
@@ -31,7 +32,7 @@
     "@types/morgan": "^1.9.10",
     "@types/node": "^25.0.9",
     "nodemon": "^3.1.11",
-    "prisma": "^7.2.0",
+    "prisma": "^7.4.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
