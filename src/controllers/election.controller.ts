@@ -4,7 +4,7 @@ import { ElectionService } from '../services/election.service';
 export class ElectionController {
   constructor(
     private electionService: ElectionService = new ElectionService(),
-  ) {}
+  ) { }
 
   /**
    * POST /api/election/party
@@ -14,21 +14,15 @@ export class ElectionController {
     try {
       const { name, logoUrl, policy } = req.body;
 
-      if (!name) {
-        return res.status(400).json({
-          success: false,
-          message: 'กรุณาระบุชื่อพรรค',
-        });
-      }
-      const party = await this.electionService.createParty(
+      const party = await this.electionService.createParty({
         name,
         logoUrl,
         policy,
-      );
+      });
 
       res.status(201).json({
         success: true,
-        message: 'สร้างพรรคสำเร็จ',
+        message: "สร้างพรรคสำเร็จ",
         data: party,
       });
     } catch (error: any) {
@@ -58,38 +52,21 @@ export class ElectionController {
         userId,
       } = req.body;
 
-      // Validation
-
-      if (
-        !candidateNumber ||
-        !firstName ||
-        !lastName ||
-        !partyId ||
-        !constituencyId ||
-        !userId
-      ) {
-        return res.status(400).json({
-          success: false,
-          message:
-            'กรุณากระบุข้อมูลที่จำเป็น: candidateNumber, firstName, lastName, partyId, constituencyId, userId',
-        });
-      }
-
-      const candidate = await this.electionService.addCandidate(
+      const candidate = await this.electionService.addCandidate({
         candidateNumber,
-        title || null,
+        title,
         firstName,
         lastName,
-        imageUrl || null,
-        policy || null,
+        imageUrl,
+        policy,
         partyId,
         constituencyId,
         userId,
-      );
+      });
 
       res.status(201).json({
         success: true,
-        message: 'เพิ่มผู้สมัครสำเร็จ',
+        message: "เพิ่มผู้สมัครสำเร็จ",
         data: candidate,
       });
     } catch (error: any) {
@@ -100,10 +77,10 @@ export class ElectionController {
     }
   };
 
-    /**
-   * PATCH /api/election/close/:id
-   * ปิดการลงคะแนนในเขต (EC only)
-   */
+  /**
+ * PATCH /api/election/close/:id
+ * ปิดการลงคะแนนในเขต (EC only)
+ */
 
   closePoll = async (req: Request, res: Response) => {
     try {
@@ -189,19 +166,336 @@ export class ElectionController {
     try {
       const { province } = req.query;
 
-      let constituencies;
-      if (province && typeof province === 'string') {
-        // ถ้ามีระบุจังหวัด ให้กรองตามจังหวัด
-        constituencies =
-          await this.electionService.getConstituenciesByProvince(province);
-      } else {
-        // ถ้าไม่มี ให้แสดงทั้งหมด
-        constituencies = await this.electionService.getAllConstituencies();
-      }
+      const constituencies = await this.electionService.getConstituencies({
+        province: typeof province === "string" ? province : undefined,
+      });
 
       res.status(200).json({
         success: true,
         data: constituencies,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  getPublicPartyList = async (req: Request, res: Response) => {
+    try {
+      const parties = await this.electionService.getPublicPartyList();
+
+      res.status(200).json({
+        success: true,
+        data: parties,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  getPublicPartyDetails = async (req: Request, res: Response) => {
+    try {
+      const idParam = req.params.id;
+      const id = parseInt(Array.isArray(idParam) ? idParam[0] : idParam);
+
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Party ID ไม่ถูกต้อง",
+        });
+      }
+
+      const party = await this.electionService.getPublicPartyDetails(id);
+
+      res.status(200).json({
+        success: true,
+        data: party,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  getAllParties = async (req: Request, res: Response) => {
+    try {
+      const parties = await this.electionService.getAllParties();
+
+      res.status(200).json({
+        success: true,
+        data: parties,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  getPartyById = async (req: Request, res: Response) => {
+    try {
+      const idParam = req.params.id;
+      const id = parseInt(Array.isArray(idParam) ? idParam[0] : idParam);
+
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Party ID ไม่ถูกต้อง",
+        });
+      }
+
+      const party = await this.electionService.getPartyById(id);
+
+      res.status(200).json({
+        success: true,
+        data: party,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  updateParty = async (req: Request, res: Response) => {
+    try {
+      const idParam = req.params.id;
+      const id = parseInt(Array.isArray(idParam) ? idParam[0] : idParam);
+      const { name, logoUrl, policy } = req.body;
+
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Party ID ไม่ถูกต้อง",
+        });
+      }
+
+      const party = await this.electionService.updateParty(id, {
+        name,
+        logoUrl,
+        policy,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "อัปเดตพรรคสำเร็จ",
+        data: party,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  deleteParty = async (req: Request, res: Response) => {
+    try {
+      const idParam = req.params.id;
+      const id = parseInt(Array.isArray(idParam) ? idParam[0] : idParam);
+
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Party ID ไม่ถูกต้อง",
+        });
+      }
+
+      await this.electionService.deleteParty(id);
+
+      res.status(200).json({
+        success: true,
+        message: "ลบพรรคสำเร็จ",
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  getEligibleVoters = async (req: Request, res: Response) => {
+    try {
+      const { constituencyId, province } = req.query;
+
+      const data = await this.electionService.getEligibleVoters({
+        constituencyId:
+          typeof constituencyId === "string"
+            ? parseInt(constituencyId)
+            : undefined,
+        province: typeof province === "string" ? province : undefined,
+      });
+
+      res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  getCandidates = async (req: Request, res: Response) => {
+    try {
+      const { constituencyId } = req.query;
+
+      const data = await this.electionService.getCandidates({
+        constituencyId:
+          typeof constituencyId === "string"
+            ? parseInt(constituencyId)
+            : undefined,
+      });
+
+      res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  getCandidateById = async (req: Request, res: Response) => {
+    try {
+      const idParam = req.params.id;
+      const id = parseInt(Array.isArray(idParam) ? idParam[0] : idParam);
+
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Candidate ID ไม่ถูกต้อง",
+        });
+      }
+
+      const candidate = await this.electionService.getCandidateById(id);
+
+      res.status(200).json({
+        success: true,
+        data: candidate,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  updateCandidate = async (req: Request, res: Response) => {
+    try {
+      const idParam = req.params.id;
+      const id = parseInt(Array.isArray(idParam) ? idParam[0] : idParam);
+      const { candidateNumber, title, firstName, lastName, imageUrl, policy, partyId } =
+        req.body;
+
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Candidate ID ไม่ถูกต้อง",
+        });
+      }
+
+      const candidate = await this.electionService.updateCandidate(id, {
+        candidateNumber,
+        title,
+        firstName,
+        lastName,
+        imageUrl,
+        policy,
+        partyId,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "อัปเดตผู้สมัครสำเร็จ",
+        data: candidate,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  deleteCandidate = async (req: Request, res: Response) => {
+    try {
+      const idParam = req.params.id;
+      const id = parseInt(Array.isArray(idParam) ? idParam[0] : idParam);
+
+      if (isNaN(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Candidate ID ไม่ถูกต้อง",
+        });
+      }
+
+      await this.electionService.deleteCandidate(id);
+
+      res.status(200).json({
+        success: true,
+        message: "ลบผู้สมัครสำเร็จ",
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  getNextCandidateNumber = async (req: Request, res: Response) => {
+    try {
+      const idParam = req.params.constituencyId;
+      const constituencyId = parseInt(
+        Array.isArray(idParam) ? idParam[0] : idParam,
+      );
+
+      if (isNaN(constituencyId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Constituency ID ไม่ถูกต้อง",
+        });
+      }
+
+      const nextNumber =
+        await this.electionService.getNextCandidateNumber(constituencyId);
+
+      res.status(200).json({
+        success: true,
+        data: { nextCandidateNumber: nextNumber },
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  getAllProvinces = async (req: Request, res: Response) => {
+    try {
+      const provinces = await this.electionService.getAllProvinces();
+
+      res.status(200).json({
+        success: true,
+        data: provinces,
       });
     } catch (error: any) {
       res.status(400).json({

@@ -43,3 +43,55 @@ export const findAllWithCandidates = async () => {
     },
   });
 };
+
+export const update = async (
+  id: number,
+  data: { name?: string; logoUrl?: string; policy?: string },
+) => {
+  return await prisma.party.update({
+    where: { id },
+    data,
+  });
+};
+
+export const remove = async (id: number) => {
+  return await prisma.party.delete({
+    where: { id },
+  });
+};
+
+export const findByName = async (name: string) => {
+  return await prisma.party.findFirst({
+    where: { name },
+  });
+};
+
+export const findAllWithCandidateCount = async () => {
+  return await prisma.party.findMany({
+    orderBy: { name: "asc" },
+    include: {
+      _count: {
+        select: { candidates: true },
+      },
+    },
+  });
+};
+
+export const findByIdWithCandidates = async (id: number) => {
+  return await prisma.party.findUnique({
+    where: { id },
+    include: {
+      candidates: {
+        include: {
+          constituency: true,
+          votes: true,
+        },
+        orderBy: [
+          { constituency: { province: "asc" } },
+          { constituency: { districtNumber: "asc" } },
+          { candidateNumber: "asc" },
+        ],
+      },
+    },
+  });
+};
