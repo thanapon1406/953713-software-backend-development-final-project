@@ -15,4 +15,19 @@ router.get(
 
 router.post("/", authenticate, authorize("VOTER", "EC"), voteController.vote);
 
+router.get(
+  "/my-vote",
+  authenticate,
+  authorize("VOTER", "EC"),
+  voteController.getMyVote,
+);
+
+router.get(
+  "/my-results",
+  authenticate,
+  authorize("VOTER", "EC"),
+  voteController.getMyConstituencyResults,
+);
+
+
 export default router;
