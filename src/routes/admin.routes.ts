@@ -26,7 +26,63 @@ router.patch(
   "/promote-ec/:userId",
   authenticate,
   authorize("ADMIN"),
- adminController.promoteUserToEC,
+  adminController.promoteUserToEC,
+);
+
+router.get(
+  "/user/:id",
+  authenticate,
+  authorize("ADMIN"),
+  adminController.getUserById,
+);
+
+router.put(
+  "/user/:id",
+  authenticate,
+  authorize("ADMIN"),
+  adminController.updateUser,
+);
+
+router.patch(
+  "/demote-voter/:userId",
+  authenticate,
+  authorize("ADMIN"),
+  adminController.demoteECToVoter,
+);
+
+router.get(
+  "/constituencies",
+  authenticate,
+  authorize("ADMIN"),
+  adminController.getAllConstituencies,
+);
+
+router.get(
+  "/constituency/:id",
+  authenticate,
+  authorize("ADMIN"),
+  adminController.getConstituencyById,
+);
+
+router.put(
+  "/constituency/:id",
+  authenticate,
+  authorize("ADMIN"),
+  adminController.updateConstituency,
+);
+
+router.delete(
+  "/constituency/:id",
+  authenticate,
+  authorize("ADMIN"),
+  adminController.deleteConstituency,
+);
+
+router.patch(
+  "/constituency/:id/toggle-status",
+  authenticate,
+  authorize("ADMIN"),
+  adminController.toggleConstituencyStatus,
 );
 
 export default router;

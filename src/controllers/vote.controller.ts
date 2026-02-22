@@ -3,7 +3,7 @@ import { AuthRequest } from "../middlewares/auth.middleware";
 import { VoteService } from "../services/vote.service";
 
 export class VoteController {
-  constructor(private voteService: VoteService = new VoteService()) {}
+  constructor(private voteService: VoteService = new VoteService()) { }
 
   getBallot = async (req: AuthRequest, res: Response) => {
     try {
@@ -30,7 +30,7 @@ export class VoteController {
     }
   };
 
-   vote = async (req: AuthRequest, res: Response) => {
+  vote = async (req: AuthRequest, res: Response) => {
     try {
       const userId = req.user?.id;
       const { candidateId } = req.body;
@@ -55,6 +55,56 @@ export class VoteController {
         success: true,
         message: result.message,
         data: result.vote,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  getMyVote = async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "กรุณาล็อกอินเข้าสู่ระบบ",
+        });
+      }
+
+      const result = await this.voteService.getMyVote(userId);
+
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+  getMyConstituencyResults = async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "กรุณาล็อกอินเข้าสู่ระบบ",
+        });
+      }
+
+      const result = await this.voteService.getMyConstituencyResults(userId);
+
+      res.status(200).json({
+        success: true,
+        data: result,
       });
     } catch (error: any) {
       res.status(400).json({
