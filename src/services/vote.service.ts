@@ -1,11 +1,10 @@
-
+// src/services/vote.service.ts
 import * as voteRepo from "../repositories/vote.repository";
 import * as userRepo from "../repositories/user.repository";
 import * as candidateRepo from "../repositories/candidate.repository";
 import * as constituencyRepo from "../repositories/constituency.repository";
 
 export class VoteService {
-
   public getBallot = async (userId: number) => {
     const user = await userRepo.findById(userId);
 
@@ -24,10 +23,10 @@ export class VoteService {
     const ballot = candidates.map((candidate) => ({
       id: candidate.id,
       candidateNumber: candidate.candidateNumber,
-      title: candidate.title,
-      firstName: candidate.firstName,
-      lastName: candidate.lastName,
-      imageUrl: candidate.imageUrl,
+      title: candidate.user.title,
+      firstName: candidate.user.firstName,
+      lastName: candidate.user.lastName,
+      imageUrl: candidate.user.imageUrl,
       policy: candidate.policy,
       party: {
         id: candidate.party.id,
@@ -46,7 +45,6 @@ export class VoteService {
       candidates: ballot,
     };
   };
-
 
   public castVote = async (userId: number, candidateId: number) => {
     const user = await userRepo.findById(userId);
@@ -85,8 +83,8 @@ export class VoteService {
         candidate: {
           id: vote.candidate.id,
           candidateNumber: vote.candidate.candidateNumber,
-          firstName: vote.candidate.firstName,
-          lastName: vote.candidate.lastName,
+          firstName: vote.candidate.user.firstName,
+          lastName: vote.candidate.user.lastName,
           party: {
             id: vote.candidate.party.id,
             name: vote.candidate.party.name,
@@ -95,6 +93,7 @@ export class VoteService {
       },
     };
   };
+
 
   public getMyVote = async (userId: number) => {
     const user = await userRepo.findById(userId);
@@ -136,10 +135,10 @@ export class VoteService {
         candidate: {
           id: vote.candidate.id,
           candidateNumber: vote.candidate.candidateNumber,
-          title: vote.candidate.title,
-          firstName: vote.candidate.firstName,
-          lastName: vote.candidate.lastName,
-          imageUrl: vote.candidate.imageUrl,
+          title: vote.candidate.user.title,
+          firstName: vote.candidate.user.firstName,
+          lastName: vote.candidate.user.lastName,
+          imageUrl: vote.candidate.user.imageUrl,
           party: {
             id: vote.candidate.party.id,
             name: vote.candidate.party.name,
@@ -173,10 +172,10 @@ export class VoteService {
     const candidatesWithVotes = data.candidates.map((candidate) => ({
       id: candidate.id,
       candidateNumber: candidate.candidateNumber,
-      title: candidate.title,
-      firstName: candidate.firstName,
-      lastName: candidate.lastName,
-      imageUrl: candidate.imageUrl,
+      title: candidate.user.title,
+      firstName: candidate.user.firstName,
+      lastName: candidate.user.lastName,
+      imageUrl: candidate.user.imageUrl,
       policy: candidate.policy,
       party: {
         id: candidate.party.id,

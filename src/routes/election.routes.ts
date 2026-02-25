@@ -102,4 +102,11 @@ router.get(
   electionController.getAllProvinces,
 );
 
+router.post(
+  "/party/:id/logo",
+  authenticate,
+  authorize("EC"),
+  electionController.uploadPartyLogo,
+);
+
 export default router;

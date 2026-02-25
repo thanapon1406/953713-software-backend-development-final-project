@@ -83,6 +83,7 @@ export const findByIdWithCandidates = async (id: number) => {
     include: {
       candidates: {
         include: {
+          user: true,
           constituency: true,
           votes: true,
         },

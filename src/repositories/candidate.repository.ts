@@ -22,10 +22,29 @@ export const findById = async (id: number) => {
   });
 };
 
+export const findWithResults = async (id: number) => {
+  return await prisma.constituency.findUnique({
+    where: { id },
+    include: {
+      candidates: {
+        include: {
+          user: true,
+          party: true,
+          votes: true,
+        },
+        orderBy: {
+          candidateNumber: "asc",
+        },
+      },
+    },
+  });
+};
+
 export const findByConstituency = async (constituencyId: number) => {
   return await prisma.candidate.findMany({
     where: { constituencyId },
     include: {
+      user: true,
       party: true,
       votes: true,
     },

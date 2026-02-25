@@ -8,6 +8,7 @@ export const findVoteByUserId = async (userId: number) => {
       candidate: {
         include: {
           party: true,
+          user: true
         },
       },
     },
@@ -28,6 +29,7 @@ export const upsertVote = async (userId: number, candidateId: number) => {
     include: {
       candidate: {
         include: {
+          user: true,
           party: true,
           constituency: true,
         },

@@ -42,10 +42,6 @@ export class ElectionController {
     try {
       const {
         candidateNumber,
-        title,
-        firstName,
-        lastName,
-        imageUrl,
         policy,
         partyId,
         constituencyId,
@@ -54,10 +50,6 @@ export class ElectionController {
 
       const candidate = await this.electionService.addCandidate({
         candidateNumber,
-        title,
-        firstName,
-        lastName,
-        imageUrl,
         policy,
         partyId,
         constituencyId,
@@ -496,6 +488,41 @@ export class ElectionController {
       res.status(200).json({
         success: true,
         data: provinces,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
+
+
+  uploadPartyLogo = async (req: Request, res: Response) => {
+    try {
+      const idParam = req.params.id;
+      const partyId = parseInt(Array.isArray(idParam) ? idParam[0] : idParam);
+
+      if (isNaN(partyId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Party ID ไม่ถูกต้อง",
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "กรุณาเลือกไฟล์รูปภาพ",
+        });
+      }
+
+      const result = await this.electionService.uploadPartyLogo(partyId, req.file);
+
+      res.status(200).json({
+        success: true,
+        message: "อัปโหลดโลโก้พรรคสำเร็จ",
+        data: result,
       });
     } catch (error: any) {
       res.status(400).json({
