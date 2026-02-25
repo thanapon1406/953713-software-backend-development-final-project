@@ -3,6 +3,7 @@ import * as userRepo from '../repositories/user.repository';
 import * as constituencyRepo from '../repositories/constituency.repository';
 import * as partyRepo from '../repositories/party.repository';
 import * as candidateRepo from '../repositories/candidate.repository';
+import { uploadToSupabase, deleteFromSupabase } from "./upload.service";
 
 export class ElectionService {
   /**
@@ -36,10 +37,6 @@ export class ElectionService {
    */
   public addCandidate = async (data: {
     candidateNumber: number;
-    title?: string | null;
-    firstName: string;
-    lastName: string;
-    imageUrl?: string | null;
     policy?: string | null;
     partyId: number;
     constituencyId: number;
@@ -48,14 +45,12 @@ export class ElectionService {
     // Validation
     if (
       !data.candidateNumber ||
-      !data.firstName ||
-      !data.lastName ||
       !data.partyId ||
       !data.constituencyId ||
       !data.userId
     ) {
       throw new Error(
-        "กรุณากระบุข้อมูลที่จำเป็น: candidateNumber, firstName, lastName, partyId, constituencyId, userId",
+        "กรุณากระบุข้อมูลที่จำเป็น: candidateNumber, partyId, constituencyId, userId",
       );
     }
 
@@ -99,10 +94,6 @@ export class ElectionService {
 
     return await candidateRepo.create({
       candidateNumber: data.candidateNumber,
-      title: data.title || null,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      imageUrl: data.imageUrl || null,
       policy: data.policy || null,
       user: { connect: { id: data.userId } },
       party: { connect: { id: data.partyId } },
@@ -160,10 +151,10 @@ export class ElectionService {
     const candidatesWithVotes = data.candidates.map((candidate) => ({
       id: candidate.id,
       candidateNumber: candidate.candidateNumber,
-      title: candidate.title,
-      firstName: candidate.firstName,
-      lastName: candidate.lastName,
-      imageUrl: candidate.imageUrl,
+      title: candidate.user.title,
+      firstName: candidate.user.firstName,
+      lastName: candidate.user.lastName,
+      imageUrl: candidate.user.imageUrl,
       policy: candidate.policy,
       party: {
         id: candidate.party.id,
@@ -320,10 +311,10 @@ export class ElectionService {
       return {
         id: candidate.id,
         candidateNumber: candidate.candidateNumber,
-        title: candidate.title,
-        firstName: candidate.firstName,
-        lastName: candidate.lastName,
-        imageUrl: candidate.imageUrl,
+        title: candidate.user.title,
+        firstName: candidate.user.firstName,
+        lastName: candidate.user.lastName,
+        imageUrl: candidate.user.imageUrl,
         policy: candidate.policy,
         constituency: {
           id: candidate.constituency.id,
@@ -430,8 +421,10 @@ export class ElectionService {
       voters: users.map((user) => ({
         id: user.id,
         nationalId: user.nationalId,
+        title: user.title,
         firstName: user.firstName,
         lastName: user.lastName,
+        imageUrl: user.imageUrl,
         address: user.address,
         role: user.role,
         isCandidate: !!user.candidateProfile,
@@ -439,8 +432,6 @@ export class ElectionService {
           ? {
             id: user.candidateProfile.id,
             candidateNumber: user.candidateProfile.candidateNumber,
-            title: user.candidateProfile.title,
-            imageUrl: user.candidateProfile.imageUrl,
             policy: user.candidateProfile.policy,
             party: user.candidateProfile.party,
           }
@@ -455,8 +446,10 @@ export class ElectionService {
     return users.map((user) => ({
       id: user.id,
       nationalId: user.nationalId,
+      title: user.title,
       firstName: user.firstName,
       lastName: user.lastName,
+      imageUrl: user.imageUrl,
       address: user.address,
       role: user.role,
       constituency: user.constituency,
@@ -465,8 +458,6 @@ export class ElectionService {
         ? {
           id: user.candidateProfile.id,
           candidateNumber: user.candidateProfile.candidateNumber,
-          title: user.candidateProfile.title,
-          imageUrl: user.candidateProfile.imageUrl,
           policy: user.candidateProfile.policy,
           party: user.candidateProfile.party,
         }
@@ -505,17 +496,15 @@ export class ElectionService {
       candidates: candidates.map((candidate) => ({
         id: candidate.id,
         candidateNumber: candidate.candidateNumber,
-        title: candidate.title,
-        firstName: candidate.firstName,
-        lastName: candidate.lastName,
-        imageUrl: candidate.imageUrl,
+        title: candidate.user.title,
+        firstName: candidate.user.firstName,
+        lastName: candidate.user.lastName,
+        imageUrl: candidate.user.imageUrl,
         policy: candidate.policy,
         party: candidate.party,
         user: {
           id: candidate.user.id,
           nationalId: candidate.user.nationalId,
-          firstName: candidate.user.firstName,
-          lastName: candidate.user.lastName,
         },
         voteCount: candidate.votes.length,
       })),
@@ -600,5 +589,30 @@ export class ElectionService {
     const constituencies = await constituencyRepo.findAll();
     const provinces = [...new Set(constituencies.map((c) => c.province))];
     return provinces.sort();
+  };
+
+  public uploadPartyLogo = async (partyId: number, file: Express.Multer.File) => {
+    const party = await partyRepo.findById(partyId);
+
+    if (!party) {
+      throw new Error(`ไม่พบพรรค ID: ${partyId}`);
+    }
+
+    // Delete old logo if exists
+    if (party.logoUrl) {
+      await deleteFromSupabase(party.logoUrl);
+    }
+
+    // Upload new logo
+    const logoUrl = await uploadToSupabase(file, "parties");
+
+    // Update party with new logo URL
+    const updatedParty = await partyRepo.update(partyId, { logoUrl });
+
+    return {
+      id: updatedParty.id,
+      name: updatedParty.name,
+      logoUrl: updatedParty.logoUrl,
+    };
   };
 }

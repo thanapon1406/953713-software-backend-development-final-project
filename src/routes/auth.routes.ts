@@ -9,5 +9,10 @@ const authController = new AuthController();
 router.get("/me", authenticate, authController.getProfile);
 router.post("/register", authController.register);
 router.post("/login", authController.login);
+router.post(
+    "/upload-profile-image",
+    authenticate,
+    authController.uploadProfileImage,
+);
 
 export default router;

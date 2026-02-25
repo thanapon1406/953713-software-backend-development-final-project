@@ -54,6 +54,7 @@ export const findWithResults = async (id: number) => {
     include: {
       candidates: {
         include: {
+          user: true,
           party: true,
           votes: true,
         },
@@ -64,6 +65,7 @@ export const findWithResults = async (id: number) => {
     },
   });
 };
+
 
 export const update = async (
   id: number,
