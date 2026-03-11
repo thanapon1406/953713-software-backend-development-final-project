@@ -184,4 +184,36 @@ export class AuthController {
     }
   };
 
+  public updateProfile = async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "กรุณาล็อกอินเข้าสู่ระบบ",
+        });
+      }
+
+      const { title, firstName, lastName, address } = req.body;
+
+      const user = await this.authService.updateProfile(userId, {
+        title,
+        firstName,
+        lastName,
+        address,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "อัปเดตข้อมูลสำเร็จ",
+        data: user,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  };
 }
