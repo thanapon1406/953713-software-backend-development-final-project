@@ -11,7 +11,7 @@ const adminController = new AdminController();
 router.get(
   "/users",
   authenticate,
-  authorize("ADMIN"),
+  authorize("ADMIN", "EC"),
   adminController.getAllUsers,
 );
 
@@ -32,7 +32,7 @@ router.patch(
 router.get(
   "/user/:id",
   authenticate,
-  authorize("ADMIN"),
+  authorize("ADMIN", "EC"),
   adminController.getUserById,
 );
 
