@@ -100,4 +100,24 @@ export class AuthService {
       imageUrl: updatedUser.imageUrl,
     };
   };
+
+  public updateProfile = async (
+    userId: number,
+    data: {
+      title?: string;
+      firstName?: string;
+      lastName?: string;
+      address?: string;
+    },
+  ) => {
+    const user = await userRepo.findById(userId);
+
+    if (!user) {
+      throw new Error(`ไม่พบผู้ใช้ ID: ${userId}`);
+    }
+
+    const updatedUser = await userRepo.update(userId, data);
+
+    return updatedUser;
+  };
 }

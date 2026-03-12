@@ -29,5 +29,12 @@ router.get(
   voteController.getMyConstituencyResults,
 );
 
+router.get(
+  "/constituencies",
+  authenticate,
+  authorize("VOTER", "EC"),
+  voteController.getAllConstituencies,
+);
+
 
 export default router;

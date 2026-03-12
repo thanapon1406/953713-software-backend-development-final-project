@@ -116,6 +116,7 @@ export const update = async (
     address?: string;
     imageUrl?: string;
     constituencyId?: number;
+    title?: string;
   },
 ) => {
   return await prisma.user.update({
