@@ -109,4 +109,24 @@ router.post(
   electionController.uploadPartyLogo,
 );
 
+router.get("/constituency/:id", electionController.getConstituencyData);
+
+router.patch(
+  "/close/:id",
+  authenticate,
+  authorize("EC"),
+  electionController.closePoll,
+);
+
+router.get("/party-overview", electionController.getPartyOverview);
+
+router.get("/constituencies", electionController.getAllConstituencies);
+
+router.post(
+  "/party/:id/logo",
+  authenticate,
+  authorize("EC"),
+  electionController.uploadPartyLogo,
+);
+
 export default router;
