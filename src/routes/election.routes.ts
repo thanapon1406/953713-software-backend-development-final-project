@@ -13,7 +13,6 @@ router.post(
   electionController.createParty,
 );
 
-
 router.post(
   "/candidate",
   authenticate,
