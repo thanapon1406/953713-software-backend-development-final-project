@@ -8,7 +8,6 @@ export class AuthController {
 
   public getProfile = async (req: Request, res: Response) => {
     try {
-      // from middleware
       const userId = (req as any).user?.id;
 
       if (!userId) {
@@ -17,8 +16,20 @@ export class AuthController {
           message: "กรุณาล็อกอินเข้าสู่ระบบ",
         });
       }
+
+      const user = await this.authService.getUserProfile(userId);
+
       res.status(200).json({
         success: true,
+        data: {
+          id: user.id,
+          nationalId: user.nationalId,
+          title: user.title,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          constituency: user.constituency,
+        },
       });
     } catch (error: any) {
       res.status(400).json({
@@ -34,6 +45,7 @@ export class AuthController {
       const {
         nationalId,
         laserCode,
+        title,
         firstName,
         lastName,
         address,
@@ -61,6 +73,7 @@ export class AuthController {
       const newUser = await this.authService.registerUser(
         nationalId,
         laserCode,
+        title,
         firstName,
         lastName,
         address,
@@ -87,6 +100,7 @@ export class AuthController {
           user: {
             id: newUser.id,
             nationalId: newUser.nationalId,
+            title: newUser.title,
             firstName: newUser.firstName,
             lastName: newUser.lastName,
             role: newUser.role,
@@ -135,6 +149,7 @@ export class AuthController {
           user: {
             id: user.id,
             nationalId: user.nationalId,
+            title: user.title,
             firstName: user.firstName,
             lastName: user.lastName,
             role: user.role,

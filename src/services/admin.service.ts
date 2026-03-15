@@ -85,6 +85,7 @@ export class AdminService {
   public updateUser = async (
     userId: number,
     data: {
+      title?: string;
       firstName?: string;
       lastName?: string;
       address?: string;
