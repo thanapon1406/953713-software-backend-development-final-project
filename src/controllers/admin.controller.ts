@@ -111,7 +111,7 @@ export class AdminController {
     try {
       const idParam = req.params.id;
       const id = parseInt(Array.isArray(idParam) ? idParam[0] : idParam);
-      const { firstName, lastName, address, constituencyId } = req.body;
+      const { title, firstName, lastName, address, constituencyId } = req.body;
 
       if (isNaN(id)) {
         return res.status(400).json({
@@ -121,6 +121,7 @@ export class AdminController {
       }
 
       const user = await this.adminService.updateUser(id, {
+        title,
         firstName,
         lastName,
         address,
@@ -139,7 +140,6 @@ export class AdminController {
       });
     }
   };
-
   demoteECToVoter = async (req: Request, res: Response) => {
     try {
       const userIdParam = req.params.userId;
