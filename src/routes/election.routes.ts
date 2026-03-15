@@ -2,6 +2,7 @@ import { Router } from "express";
 import { ElectionController } from "../controllers/election.controller";
 import { authenticate } from "../middlewares/auth.middleware";
 import { authorize } from "../middlewares/role.middleware";
+import { uploadImageSafe } from "../middlewares/upload.middleware";
 
 const router = Router();
 const electionController = new ElectionController();
@@ -104,6 +105,7 @@ router.get(
 router.post(
   "/party/:id/logo",
   authenticate,
+  uploadImageSafe,
   authorize("EC"),
   electionController.uploadPartyLogo,
 );
@@ -120,12 +122,5 @@ router.patch(
 router.get("/party-overview", electionController.getPartyOverview);
 
 router.get("/constituencies", electionController.getAllConstituencies);
-
-router.post(
-  "/party/:id/logo",
-  authenticate,
-  authorize("EC"),
-  electionController.uploadPartyLogo,
-);
 
 export default router;
