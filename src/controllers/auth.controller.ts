@@ -29,6 +29,8 @@ export class AuthController {
           lastName: user.lastName,
           role: user.role,
           constituency: user.constituency,
+          address: user.address,
+          imageUrl: user.imageUrl,
         },
       });
     } catch (error: any) {
