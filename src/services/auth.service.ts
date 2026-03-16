@@ -14,6 +14,7 @@ export class AuthService {
     address: string,
     province: string,
     districtNumber: number,
+    imageUrl: string | undefined,
   ) => {
     // 1. ตรวจสอบว่ามี nationalId นี้ในระบบแล้วหรือยัง
     const existingUser = await userRepo.findByNationalId(nationalId);
@@ -44,6 +45,7 @@ export class AuthService {
       constituency: {
         connect: { id: constituency.id },
       },
+      imageUrl,
     });
 
     return user;
@@ -110,6 +112,7 @@ export class AuthService {
       firstName?: string;
       lastName?: string;
       address?: string;
+      imageUrl?: string,
     },
   ) => {
     const user = await userRepo.findById(userId);

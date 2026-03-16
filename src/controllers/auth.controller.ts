@@ -53,6 +53,7 @@ export class AuthController {
         address,
         province,
         districtNumber,
+        imageUrl,
       } = req.body;
 
       // Validate required fields
@@ -81,6 +82,7 @@ export class AuthController {
         address,
         province,
         parseInt(districtNumber),
+        imageUrl,
       );
 
       // สร้าง JWT Token
@@ -107,6 +109,7 @@ export class AuthController {
             lastName: newUser.lastName,
             role: newUser.role,
             constituency: newUser.constituency,
+            imageUrl: newUser.imageUrl,
           },
           token,
         },
@@ -212,13 +215,14 @@ export class AuthController {
         });
       }
 
-      const { title, firstName, lastName, address } = req.body;
+      const { title, firstName, lastName, address, imageUrl } = req.body;
 
       const user = await this.authService.updateProfile(userId, {
         title,
         firstName,
         lastName,
         address,
+        imageUrl,
       });
 
       res.status(200).json({

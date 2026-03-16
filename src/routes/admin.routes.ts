@@ -81,7 +81,7 @@ router.delete(
 router.patch(
   "/constituency/:id/toggle-status",
   authenticate,
-  authorize("ADMIN"),
+  authorize("ADMIN", "EC"),
   adminController.toggleConstituencyStatus,
 );
 
