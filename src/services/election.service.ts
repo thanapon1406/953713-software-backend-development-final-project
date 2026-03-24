@@ -178,10 +178,35 @@ export class ElectionService {
   /**
    * ดูภาพรวมพรรคทั้งหมด พร้อมจำนวน MPs
    */
-  public getPartyOverview = async () => {
+  public getPartyOverview = async (filters?: {
+    provinceId?: number;
+    districtNumber?: number;
+  }) => {
     const parties = await partyRepo.findAllWithCandidates();
     const allConstituencies = await constituencyRepo.findAll();
-    const closedConstituencyIds = allConstituencies
+    let scopedConstituencies = allConstituencies;
+
+    if (filters?.provinceId !== undefined) {
+      const provinces = [...new Set(allConstituencies.map((c) => c.province))].sort();
+      const province = provinces[filters.provinceId - 1];
+
+      if (!province) {
+        throw new Error(`ไม่พบจังหวัดจาก provinceId: ${filters.provinceId}`);
+      }
+
+      if (filters.districtNumber !== undefined) {
+        scopedConstituencies = allConstituencies.filter(
+          (c) =>
+            c.province === province && c.districtNumber === filters.districtNumber,
+        );
+      } else {
+        scopedConstituencies = allConstituencies.filter(
+          (c) => c.province === province,
+        );
+      }
+    }
+
+    const closedConstituencyIds = scopedConstituencies
       .filter((c) => c.isClosed)
       .map((c) => c.id);
 
@@ -217,8 +242,8 @@ export class ElectionService {
         name: party.name,
         logoUrl: party.logoUrl,
         policy: party.policy,
-        totalElectedMPs,
         totalCandidates: party.candidates.length,
+        totalElectedMPs,
       };
     });
   };
