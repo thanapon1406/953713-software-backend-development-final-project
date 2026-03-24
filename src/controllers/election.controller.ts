@@ -136,19 +136,19 @@ export class ElectionController {
    */
   getPartyOverview = async (req: Request, res: Response) => {
     try {
-      const { provinceId, districtNumber } = req.query;
+      const { id, districtNumber } = req.query;
 
-      const parsedProvinceId =
-        typeof provinceId === "string" ? parseInt(provinceId) : undefined;
+      const parsedId =
+        typeof id === "string" ? parseInt(id) : undefined;
       const parsedDistrictNumber =
         typeof districtNumber === "string"
           ? parseInt(districtNumber)
           : undefined;
 
-      if (parsedProvinceId !== undefined && isNaN(parsedProvinceId)) {
+      if (parsedId !== undefined && isNaN(parsedId)) {
         return res.status(400).json({
           success: false,
-          message: "provinceId ต้องเป็นตัวเลข",
+          message: "id ต้องเป็นตัวเลข",
         });
       }
 
@@ -162,15 +162,15 @@ export class ElectionController {
         });
       }
 
-      if (parsedDistrictNumber !== undefined && parsedProvinceId === undefined) {
+      if (parsedDistrictNumber !== undefined && parsedId === undefined) {
         return res.status(400).json({
           success: false,
-          message: "กรุณาระบุ provinceId เมื่อส่ง districtNumber",
+          message: "กรุณาระบุ id เมื่อส่ง districtNumber",
         });
       }
 
       const parties = await this.electionService.getPartyOverview({
-        provinceId: parsedProvinceId,
+        id: parsedId,
         districtNumber: parsedDistrictNumber,
       });
 

@@ -179,19 +179,19 @@ export class ElectionService {
    * ดูภาพรวมพรรคทั้งหมด พร้อมจำนวน MPs
    */
   public getPartyOverview = async (filters?: {
-    provinceId?: number;
+    id?: number;
     districtNumber?: number;
   }) => {
     const parties = await partyRepo.findAllWithCandidates();
     const allConstituencies = await constituencyRepo.findAll();
     let scopedConstituencies = allConstituencies;
 
-    if (filters?.provinceId !== undefined) {
+    if (filters?.id !== undefined) {
       const provinces = [...new Set(allConstituencies.map((c) => c.province))].sort();
-      const province = provinces[filters.provinceId - 1];
+      const province = provinces[filters.id - 1];
 
       if (!province) {
-        throw new Error(`ไม่พบจังหวัดจาก provinceId: ${filters.provinceId}`);
+        throw new Error(`ไม่พบจังหวัดจาก id: ${filters.id}`);
       }
 
       if (filters.districtNumber !== undefined) {
