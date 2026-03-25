@@ -149,3 +149,32 @@ export const isCandidateNumberUsed = async (
 
   return !!existing;
 };
+
+export const findByConstituencyIds = async (constituencyIds: number[]) => {
+  return await prisma.candidate.findMany({
+    where: {
+      constituencyId: { in: constituencyIds },
+    },
+    select: {
+      id: true,
+      partyId: true,
+      constituencyId: true,
+    },
+  });
+};
+
+export const countVotesByCandidateIds = async (candidateIds: number[]) => {
+  if (!candidateIds.length) {
+    return [];
+  }
+
+  return await prisma.vote.groupBy({
+    by: ["candidateId"],
+    where: {
+      candidateId: { in: candidateIds },
+    },
+    _count: {
+      _all: true,
+    },
+  });
+};
