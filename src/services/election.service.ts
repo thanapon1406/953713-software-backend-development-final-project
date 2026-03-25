@@ -187,51 +187,98 @@ export class ElectionService {
     let scopedConstituencies = allConstituencies;
 
     if (filters?.id !== undefined) {
-      const provinces = [...new Set(allConstituencies.map((c) => c.province))].sort();
-      const province = provinces[filters.id - 1];
+      const constituency = await constituencyRepo.findById(filters.id);
 
-      if (!province) {
-        throw new Error(`ไม่พบจังหวัดจาก id: ${filters.id}`);
+      if (!constituency) {
+        throw new Error(`ไม่พบเขตเลือกตั้งจาก id: ${filters.id}`);
       }
 
-      if (filters.districtNumber !== undefined) {
-        scopedConstituencies = allConstituencies.filter(
-          (c) =>
-            c.province === province && c.districtNumber === filters.districtNumber,
-        );
+      if (
+        filters.districtNumber !== undefined &&
+        constituency.districtNumber !== filters.districtNumber
+      ) {
+        scopedConstituencies = [];
       } else {
-        scopedConstituencies = allConstituencies.filter(
-          (c) => c.province === province,
-        );
+        scopedConstituencies = [constituency];
       }
     }
+
+    const scopedConstituencyIds = scopedConstituencies.map((c) => c.id);
+    const scopedCandidates = await candidateRepo.findByConstituencyIds(
+      scopedConstituencyIds,
+    );
+
+    const candidateCountByPartyId = new Map<number, number>();
+    for (const candidate of scopedCandidates) {
+      const currentCount = candidateCountByPartyId.get(candidate.partyId) ?? 0;
+      candidateCountByPartyId.set(candidate.partyId, currentCount + 1);
+    }
+
+    const partiesInScope =
+      filters?.id !== undefined
+        ? parties.filter((party) => candidateCountByPartyId.has(party.id))
+        : parties;
 
     const closedConstituencyIds = scopedConstituencies
       .filter((c) => c.isClosed)
       .map((c) => c.id);
 
-    // Get closed constituencies with full data
-    const closedConstituenciesData = await Promise.all(
-      closedConstituencyIds.map((id) => constituencyRepo.findWithResults(id)),
+    const closedConstituencyIdSet = new Set(closedConstituencyIds);
+    const closedCandidates = scopedCandidates.filter((candidate) =>
+      closedConstituencyIdSet.has(candidate.constituencyId),
     );
 
-    return parties.map((party) => {
+    if (!closedConstituencyIds.length) {
+      return partiesInScope.map((party) => ({
+        id: party.id,
+        name: party.name,
+        logoUrl: party.logoUrl,
+        policy: party.policy,
+        totalCandidates:
+          filters?.id !== undefined
+            ? candidateCountByPartyId.get(party.id) ?? 0
+            : party.candidates.length,
+        totalElectedMPs: 0,
+      }));
+    }
+
+    const voteCounts = await candidateRepo.countVotesByCandidateIds(
+      closedCandidates.map((candidate) => candidate.id),
+    );
+
+    const voteCountByCandidateId = new Map<number, number>();
+    for (const voteCount of voteCounts) {
+      voteCountByCandidateId.set(voteCount.candidateId, voteCount._count._all);
+    }
+
+    const winnerPartyByConstituencyId = new Map<number, number>();
+
+    for (const constituencyId of closedConstituencyIds) {
+      const constituencyCandidates = closedCandidates.filter(
+        (candidate) => candidate.constituencyId === constituencyId,
+      );
+
+      let maxVotes = -1;
+      let winnerPartyId: number | null = null;
+
+      for (const candidate of constituencyCandidates) {
+        const voteCount = voteCountByCandidateId.get(candidate.id) ?? 0;
+
+        if (voteCount > maxVotes) {
+          maxVotes = voteCount;
+          winnerPartyId = candidate.partyId;
+        }
+      }
+
+      if (winnerPartyId !== null) {
+        winnerPartyByConstituencyId.set(constituencyId, winnerPartyId);
+      }
+    }
+
+    return partiesInScope.map((party) => {
       let totalElectedMPs = 0;
 
-      for (const constituency of closedConstituenciesData) {
-        if (!constituency) continue;
-
-        let maxVotes = -1;
-        let winnerPartyId: number | null = null;
-
-        for (const candidate of constituency.candidates) {
-          const voteCount = candidate.votes.length;
-          if (voteCount > maxVotes) {
-            maxVotes = voteCount;
-            winnerPartyId = candidate.partyId;
-          }
-        }
-
+      for (const winnerPartyId of winnerPartyByConstituencyId.values()) {
         if (winnerPartyId === party.id) {
           totalElectedMPs++;
         }
@@ -242,7 +289,10 @@ export class ElectionService {
         name: party.name,
         logoUrl: party.logoUrl,
         policy: party.policy,
-        totalCandidates: party.candidates.length,
+        totalCandidates:
+          filters?.id !== undefined
+            ? candidateCountByPartyId.get(party.id) ?? 0
+            : party.candidates.length,
         totalElectedMPs,
       };
     });
